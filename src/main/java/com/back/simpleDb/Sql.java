@@ -77,8 +77,34 @@ public class Sql {
         }
     }
     public int delete() { return update(); }
-    public List<Map<String, Object>> selectRows() { throw new UnsupportedOperationException("Not implemented yet"); }
-    public Map<String, Object> selectRow() { throw new UnsupportedOperationException("Not implemented yet"); }
+    private Object convertValue(Object value) {
+        if (value instanceof Timestamp) return ((Timestamp) value).toLocalDateTime();
+        if (value instanceof byte[]) { byte[] b = (byte[]) value; return b.length > 0 && b[0] != 0; }
+        return value;
+    }
+
+    public List<Map<String, Object>> selectRows() {
+        Connection conn = simpleDb.getConnection();
+        try (PreparedStatement ps = prepare(conn); ResultSet rs = ps.executeQuery()) {
+            List<Map<String, Object>> rows = new ArrayList<>();
+            ResultSetMetaData meta = rs.getMetaData();
+            int colCount = meta.getColumnCount();
+            while (rs.next()) {
+                Map<String, Object> row = new LinkedHashMap<>();
+                for (int i = 1; i <= colCount; i++)
+                    row.put(meta.getColumnLabel(i), convertValue(rs.getObject(i)));
+                rows.add(row);
+            }
+            return rows;
+        } catch (SQLException e) {
+            throw new RuntimeException("SELECT 실패: " + e.getMessage(), e);
+        }
+    }
+
+    public Map<String, Object> selectRow() {
+        List<Map<String, Object>> rows = selectRows();
+        return rows.isEmpty() ? null : rows.get(0);
+    }
     public Long selectLong() { throw new UnsupportedOperationException("Not implemented yet"); }
     public List<Long> selectLongs() { throw new UnsupportedOperationException("Not implemented yet"); }
     public String selectString() { throw new UnsupportedOperationException("Not implemented yet"); }
