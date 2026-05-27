@@ -120,7 +120,14 @@ public class Sql {
             return null;
         } catch (SQLException e) { throw new RuntimeException("selectLong 실패", e); }
     }
-    public List<Long> selectLongs() { throw new UnsupportedOperationException("Not implemented yet"); }
+    public List<Long> selectLongs() {
+        Connection conn = simpleDb.getConnection();
+        try (PreparedStatement ps = prepare(conn); ResultSet rs = ps.executeQuery()) {
+            List<Long> result = new ArrayList<>();
+            while (rs.next()) result.add(rs.getLong(1));
+            return result;
+        } catch (SQLException e) { throw new RuntimeException("selectLongs 실패", e); }
+    }
     public String selectString() {
         Connection conn = simpleDb.getConnection();
         try (PreparedStatement ps = prepare(conn); ResultSet rs = ps.executeQuery()) {
@@ -135,7 +142,18 @@ public class Sql {
             return null;
         } catch (SQLException e) { throw new RuntimeException("selectBoolean 실패", e); }
     }
-    public Sql appendIn(String sql, Object... values) { throw new UnsupportedOperationException("Not implemented yet"); }
+    public Sql appendIn(String sql, Object... values) {
+        List<Object> expanded = new ArrayList<>();
+        if (values.length == 1 && values[0] instanceof Object[])
+            Collections.addAll(expanded, (Object[]) values[0]);
+        else
+            Collections.addAll(expanded, values);
+        String expandedSql = sql.replace("?", String.join(", ", Collections.nCopies(expanded.size(), "?")));
+        if (sqlBuilder.length() > 0) sqlBuilder.append("\n");
+        sqlBuilder.append(expandedSql);
+        params.addAll(expanded);
+        return this;
+    }
     public <T> List<T> selectRows(Class<T> clazz) { throw new UnsupportedOperationException("Not implemented yet"); }
     public <T> T selectRow(Class<T> clazz) { throw new UnsupportedOperationException("Not implemented yet"); }
 }
