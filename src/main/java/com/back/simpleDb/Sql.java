@@ -105,11 +105,18 @@ public class Sql {
         List<Map<String, Object>> rows = selectRows();
         return rows.isEmpty() ? null : rows.get(0);
     }
+    public LocalDateTime selectDatetime() {
+        Connection conn = simpleDb.getConnection();
+        try (PreparedStatement ps = prepare(conn); ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) { Timestamp ts = rs.getTimestamp(1); return ts != null ? ts.toLocalDateTime() : null; }
+            return null;
+        } catch (SQLException e) { throw new RuntimeException("selectDatetime 실패", e); }
+    }
+
     public Long selectLong() { throw new UnsupportedOperationException("Not implemented yet"); }
     public List<Long> selectLongs() { throw new UnsupportedOperationException("Not implemented yet"); }
     public String selectString() { throw new UnsupportedOperationException("Not implemented yet"); }
     public Boolean selectBoolean() { throw new UnsupportedOperationException("Not implemented yet"); }
-    public LocalDateTime selectDatetime() { throw new UnsupportedOperationException("Not implemented yet"); }
     public Sql appendIn(String sql, Object... values) { throw new UnsupportedOperationException("Not implemented yet"); }
     public <T> List<T> selectRows(Class<T> clazz) { throw new UnsupportedOperationException("Not implemented yet"); }
     public <T> T selectRow(Class<T> clazz) { throw new UnsupportedOperationException("Not implemented yet"); }
