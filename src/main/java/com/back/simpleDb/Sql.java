@@ -154,6 +154,16 @@ public class Sql {
         params.addAll(expanded);
         return this;
     }
-    public <T> List<T> selectRows(Class<T> clazz) { throw new UnsupportedOperationException("Not implemented yet"); }
-    public <T> T selectRow(Class<T> clazz) { throw new UnsupportedOperationException("Not implemented yet"); }
+    public <T> List<T> selectRows(Class<T> clazz) {
+        List<Map<String, Object>> rows = selectRows();
+        List<T> result = new ArrayList<>(rows.size());
+        for (Map<String, Object> row : rows) result.add(objectMapper.convertValue(row, clazz));
+        return result;
+    }
+
+    public <T> T selectRow(Class<T> clazz) {
+        Map<String, Object> row = selectRow();
+        if (row == null) return null;
+        return objectMapper.convertValue(row, clazz);
+    }
 }
