@@ -113,7 +113,13 @@ public class Sql {
         } catch (SQLException e) { throw new RuntimeException("selectDatetime 실패", e); }
     }
 
-    public Long selectLong() { throw new UnsupportedOperationException("Not implemented yet"); }
+    public Long selectLong() {
+        Connection conn = simpleDb.getConnection();
+        try (PreparedStatement ps = prepare(conn); ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) return rs.getLong(1);
+            return null;
+        } catch (SQLException e) { throw new RuntimeException("selectLong 실패", e); }
+    }
     public List<Long> selectLongs() { throw new UnsupportedOperationException("Not implemented yet"); }
     public String selectString() { throw new UnsupportedOperationException("Not implemented yet"); }
     public Boolean selectBoolean() { throw new UnsupportedOperationException("Not implemented yet"); }
